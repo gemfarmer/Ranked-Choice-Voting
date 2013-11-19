@@ -1,0 +1,14 @@
+extends layout
+
+block content
+	h1 #{pageInfo.title}
+	p #{pageInfo.subtitle}
+
+	form#chocolateform
+		select#chocSelect(name="type")
+			for candidate in candidates
+				option#chocOption(value="#{candidate}") #{candidate}
+
+
+	
+
