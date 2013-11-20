@@ -58,9 +58,7 @@ module.exports = {
 				# Outputs Results
 				mappedGram = _.map histogram, (grouping) ->
 					# console.log("grouping", grouping)
-					firstChoice = grouping[0].firstChoice
-					secondChoice = grouping[0].secondChoice
-					thirdChoice = grouping[0].thirdChoice
+
 					percentage = (100*grouping.length)/totalVotes
 					if percentage > 50
 						message = "Winner!"
@@ -68,9 +66,9 @@ module.exports = {
 						message = ""
 
 					return {
-						firstChoice: firstChoice
-						secondChoice: secondChoice
-						thirdChoice: thirdChoice
+						firstChoice: grouping[0].firstChoice
+						secondChoice: grouping[0].secondChoice
+						thirdChoice: grouping[0].thirdChoice
 						votes: grouping.length
 						percentage: percentage
 						message: message
@@ -137,18 +135,7 @@ module.exports = {
 					firstRoundResults: sortedMappedGram.reverse()
 					secondRoundResults: "second round results"
 				}
-				# histogram = _.map mappedVotes[0].choices, (choice) ->
-				# 	console.log "choice", choice
-				# 	return _.where mappedVotes, {firstChoice: choice}
-				# console.log("histogram",histogram)
-
-
-				# mappedTwice = _.map mappedChoices, (choice) ->
-				# 	return 
-
-				# for choice in choices
-				# 	console.log("vote::",choice.type)
-				# 	_.first(choice.type)
+				
 				res.render('tabulate', tabulatedObjectToRender);
 		
 }
