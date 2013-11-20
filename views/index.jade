@@ -3,12 +3,53 @@ extends layout
 block content
 	h1 #{pageInfo.title}
 	p #{pageInfo.subtitle}
-
-	form#chocolateform
-		select#chocSelect(name="type")
-			for candidate in candidates
-				option#chocOption(value="#{candidate}") #{candidate}
-
-
-	
+	a(href='/tabulate').btn.btn-success Tabulate Results
+	div.container
+		.container.form-container.col-xs-12
+			form#chocolateform
+				label First Choice
+				select.form-control.chocSelect(name="type", data-placeholder="Pick a chocolate...")
+					for chocolate in chocolates
+						option.chocOption(value="#{chocolate}") #{chocolate}
+				label Second Choice
+				select.form-control.chocSelect(name="type", data-placeholder="Pick a chocolate...")
+					for chocolate in chocolates
+						option.chocOption(value="#{chocolate}") #{chocolate}
+				label Third Choice
+				select.form-control.chocSelect(name="type", data-placeholder="Pick a chocolate...")
+					for chocolate in chocolates
+						option.chocOption(value="#{chocolate}") #{chocolate}
+				button#chocButton.btn.btn-primary Submit Chocolatey Choices
+		br
+		.container.form-container.col-xs-12
+			form#cakeform
+				label First Choice
+				select.form-control.cakeSelect(name="type", data-placeholder="Pick a cake...")
+					for cake in cakes
+						option.cakeOption(value="#{cake}") #{cake}
+				label Second Choice
+				select.form-control.cakeSelect(name="type", data-placeholder="Pick a cake...")
+					for cake in cakes
+						option.cakeOption(value="#{cake}") #{cake}
+				label Third Choice
+				select.form-control.cakeSelect(name="type", data-placeholder="Pick a cake...")
+					for cake in cakes
+						option.cakeOption(value="#{cake}") #{cake}
+		br
+		.container.form-container.col-xs-12
+			form#fruitform
+				label First Choice
+				select.form-control.fruitSelect(name="type", data-placeholder="Pick a fruit...")
+					for fruit in fruits
+						option.fruitOption(value="#{fruit}") #{fruit}
+				label Second Choice
+				select.form-control.fruitSelect(name="type", data-placeholder="Pick a fruit...")
+					for fruit in fruits
+						option.fruitOption(value="#{fruit}") #{fruit}
+				label Third Choice
+				select.form-control.fruitSelect(name="type", data-placeholder="Pick a fruit...")
+					for fruit in fruits
+						option.fruitOption(value="#{fruit}") #{fruit}
+		br
+		
 

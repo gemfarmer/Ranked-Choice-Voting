@@ -1,10 +1,12 @@
 doctype 5
 html
 	head
-		title= title
-		link(rel='stylesheet', href='/stylesheets/style.css')
+		title #{title} 
+		link(rel='stylesheet', href='stylesheets/lib/style.css')
+		link(rel='stylesheet', href="//netdna.bootstrapcdn.com/bootstrap/3.0.1/css/bootstrap.min.css")
 	body
-		script(src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js")
-		script(src="/socket.io/socket.io.js")
-		script(src="javascripts/main.js")
 		block content
+		script(src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js")
+		script(src="//netdna.bootstrapcdn.com/bootstrap/3.0.1/js/bootstrap.min.js")
+		script(src="/socket.io/socket.io.js")
+		script(src="javascripts/lib/main.js")

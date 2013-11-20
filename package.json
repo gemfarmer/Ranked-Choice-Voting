@@ -9,6 +9,9 @@
     "express": "3.4.0",
     "jade": "*",
     "coffee": "0.0.1",
+    "cake": "~0.1.1",
+    "stylus": "~0.39.3",
+    "mongoose": "~3.8.0",
     "socket.io": "~0.9.16"
   }
 }
