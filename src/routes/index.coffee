@@ -44,43 +44,44 @@ module.exports = {
 			if(err)
 				console.log('ERROR')
 			else
-				# console.log('votes', votes);
-
 				mappedVotes = _.map votes, (vote) ->
 					return (vote)
-				# console.log("mappedVotes",mappedVotes)
-				totalVotes = mappedVotes.length
+				# console.log('votes', votes);
+				collectVotes = (votes, additionalVotes) ->
+					
+					# console.log("votes",votes)
+					totalVotes = votes.length
 
-				# First Round Tabulation
-				histogram = _.groupBy(mappedVotes, 'firstChoice')
-				# console.log("histogram", histogram)
+					# First Round Tabulation
+					histogram = _.groupBy(votes, 'firstChoice')
+					# console.log("histogram", histogram)
 
-				# Outputs Results
-				mappedGram = _.map histogram, (grouping) ->
-					# console.log("grouping", grouping)
+					# Outputs Results
+					mappedGram = _.map histogram, (grouping) ->
+						# console.log("grouping", grouping)
 
-					percentage = (100*grouping.length)/totalVotes
-					if percentage > 50
-						message = "Winner!"
-					else
-						message = ""
+						percentage = (100*grouping.length)/totalVotes
+						if percentage > 50
+							message = "Winner!"
+						else
+							message = ""
 
-					return {
-						firstChoice: grouping[0].firstChoice
-						secondChoice: grouping[0].secondChoice
-						thirdChoice: grouping[0].thirdChoice
-						votes: grouping.length
-						percentage: percentage
-						message: message
-					}
-				# Sorts results from last to first
-				sortedMappedGram = _.sortBy mappedGram, (vote) ->
-					return vote.votes
+						return {
+							firstChoice: grouping[0].firstChoice
+							secondChoice: grouping[0].secondChoice
+							thirdChoice: grouping[0].thirdChoice
+							votes: grouping.length
+							percentage: percentage
+							message: message
+						}
+					# Sorts results from last to first
+					return sortedMappedGram = _.sortBy mappedGram, (vote) ->
+						return vote.votes
 
 				# console.log("sorted", sortedMappedGram)
 				# console.log(",MappedGram:::",mappedGram)
 
-				# Find Votes to Remove. Returns Array of Choices to be removed
+				# Find Votes to Remove. Returns Object {droppedChoices, remainingChoices}
 				findVotesToRemove = (prevRoundResults) ->
 					fewestVotes = prevRoundResults[0].votes
 					# console.log("fewest votes::",fewestVotes, fewestChoice)
@@ -93,47 +94,67 @@ module.exports = {
 						console.log("remove next")
 						fewestVotesArray.push(_.where(prevRoundResults, {votes: remainingChoices[0].votes}))
 					
-					choicesToDrop = _.map fewestVotesArray, (choice) ->
+					droppedChoices = _.map fewestVotesArray, (choice) ->
 						return choice.firstChoice
-					return {choicesToDrop: choicesToDrop, remainingChoices: remainingChoices}
-				console.log("findVotesToRemove",findVotesToRemove(sortedMappedGram))
+					return {droppedChoices: droppedChoices, remainingChoices: remainingChoices}
+				console.log("findVotesToRemove",findVotesToRemove(collectVotes(mappedVotes)))
 
 				#Call Functions
-				firstRoundLosers = findVotesToRemove(sortedMappedGram).choicesToDrop
-				firstRoundWinners = findVotesToRemove(sortedMappedGram).remainingChoices
+				firstRoundLosers = findVotesToRemove(collectVotes(mappedVotes)).droppedChoices
+				firstRoundWinners = findVotesToRemove(collectVotes(mappedVotes)).remainingChoices
 
 				realocateVotes = (AllVotes, firstRoundLosers, firstRoundWinners) ->
+					#Loop through Losers array. Perform action on loser
+					console.log("firstRoundWinners", firstRoundWinners)
 
-					matchedVotes = _.map firstRoundLosers, (vote) ->
-						findSecondVotes = _.where AllVotes, {firstChoice: vote}
-						console.log("findSecondVotes", findSecondVotes)
-						secondVotes = _.each findSecondVotes, (choice) ->
-							console.log("choice:::vote", choice, ":::",vote)
-							if _.where firstRoundWinners, {firstChoice: vote}
-								# console.log("matched", choice.secondChoice)
+					matchedVotes = _.map firstRoundLosers, (loser) ->
+						findSecondVotes = _.where AllVotes, {firstChoice: loser}
+						# console.log("findSecondVotes", findSecondVotes)
+						return secondVotes = _.map findSecondVotes, (choice) ->
+							# console.log("choice:::loser", choice, ":::",loser)
+
+							found = _.where firstRoundWinners, {firstChoice: choice.secondChoice} 
+							# console.log("where:", {firstChoice: choice.secondChoice})
+							# console.log("found", found)
+							if found[0]
+								# console.log("matched:", choice.secondChoice)
 								return choice.secondChoice
 							else
-								thirdVotes = _.each findSecondVotes, (nextChoice) ->
-									if _.where firstRoundWinners, {firstChoice: vote}
-										return vote
+								# console.log("not matched. find third loser", loser)
+								thirdVotes = _.map findSecondVotes, (nextChoice) ->
+									foundAgain = _.where firstRoundWinners, {firstChoice: nextChoice.thirdChoice}
+									# console.log("whereAgain:", {firstChoice: nextChoice.thirdChoice})
+									# console.log("foundAgain", foundAgain)
+									if foundAgain[0]
+										# console.log("matchedAgain:", nextChoice.thirdChoice)
+										return nextChoice.thirdChoice
+									else
+										# console.log("out of votes")
+										return null
 
-								console.log("not matched. find third vote", vote)
 
-					console.log("matchedVotes",matchedVotes)
-					
+						# console.log("secondVotes",secondVotes)
+						
+
+
+					# console.log("matchedVotes",matchedVotes)
+					flattenedMatchedVotes = _.flatten(matchedVotes)
+					rejectNullVotes = _.reject flattenedMatchedVotes, (vote) ->
+						return vote == null
+
+					console.log(flattenedMatchedVotes, rejectNullVotes)
+
 
 
 				realocateVotes(mappedVotes, firstRoundLosers, firstRoundWinners)
-				# Start Second Round Tabulation
 
-				
 
 
 				tabulatedObjectToRender = {
 					title: "Tabulated Results", 
 					choice : "chocolate"
-					firstRoundResults: sortedMappedGram.reverse()
-					secondRoundResults: "second round results"
+					firstRoundResults: collectVotes(mappedVotes).reverse()
+					secondRoundResults: collectVotes(mappedVotes).reverse()
 				}
 				
 				res.render('tabulate', tabulatedObjectToRender);
