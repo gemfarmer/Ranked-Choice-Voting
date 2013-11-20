@@ -47,14 +47,56 @@ module.exports = {
 				console.log('votes', votes);
 
 				mappedVotes = _.map votes, (vote) ->
-					return (vote.firstChoice)
-				console.log("mappedVotes",mappedVotes.sort())
+					return (vote)
+				console.log("mappedVotes",mappedVotes)
+				totalVotes = mappedVotes.length
+
+				# First Round Tabulation
+				histogram = _.groupBy(mappedVotes, 'firstChoice')
+				console.log("histogram", histogram)
+				mappedGram = _.map histogram, (grouping) ->
+					# console.log("grouping", grouping)
+					choice = grouping[0].firstChoice
+					percentage = (100*grouping.length)/totalVotes
+					if percentage > 50
+						message = "Winner!"
+					else
+						message = ""
+
+					return {
+						choice: choice
+						votes: grouping.length
+						percentage: percentage
+						message: message
+					}
+
+
+				# Start Second Round Tabulation
+
+
+				console.log(",MappedGram:::",mappedGram)
+
+				
+
+
+				tabulatedObjectToRender = {
+					title: "Tabulated Results", 
+					choice : "chocolate"
+					firstRoundResults: mappedGram
+					secondRoundResults: "second round results"
+				}
+				# histogram = _.map mappedVotes[0].choices, (choice) ->
+				# 	console.log "choice", choice
+				# 	return _.where mappedVotes, {firstChoice: choice}
+				# console.log("histogram",histogram)
+
+
 				# mappedTwice = _.map mappedChoices, (choice) ->
 				# 	return 
 
 				# for choice in choices
 				# 	console.log("vote::",choice.type)
 				# 	_.first(choice.type)
-				res.render('tabulate', {title: "Tabulated Results", choice : "chocolate"});
+				res.render('tabulate', tabulatedObjectToRender);
 		
 }

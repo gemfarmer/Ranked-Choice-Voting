@@ -4,3 +4,8 @@ block content
 	h1 Tabulated #{choice} results
 	hr
 	a(href='/').btn.btn-default Return to Voting
+	br
+	ul First Round Results
+		hr
+		for results in firstRoundResults
+			li #{results.choice}: #{results.votes} votes | #{results.percentage}% of vote #{results.message}
