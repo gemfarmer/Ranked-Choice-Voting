@@ -12,6 +12,7 @@
     "cake": "~0.1.1",
     "stylus": "~0.39.3",
     "mongoose": "~3.8.0",
-    "socket.io": "~0.9.16"
+    "socket.io": "~0.9.16",
+    "underscore": "~1.5.2"
   }
 }
