@@ -103,6 +103,7 @@ module.exports = {
 				firstRoundLosers = findVotesToRemove(collectVotes(mappedVotes)).droppedChoices
 				firstRoundWinners = findVotesToRemove(collectVotes(mappedVotes)).remainingChoices
 
+				#returns a list of votes that can be added to previous totals
 				realocateVotes = (AllVotes, firstRoundLosers, firstRoundWinners) ->
 					#Loop through Losers array. Perform action on loser
 					console.log("firstRoundWinners", firstRoundWinners)
@@ -142,17 +143,34 @@ module.exports = {
 					rejectNullVotes = _.reject flattenedMatchedVotes, (vote) ->
 						return vote == null
 
-					console.log(flattenedMatchedVotes, rejectNullVotes)
+					console.log(flattenedMatchedVotes, "rejects",rejectNullVotes)
+				
 
+					voteCount = {
+						votes : rejectNullVotes.reduce (acc, curr) ->
+							if (typeof acc[curr] == 'undefined')
+								acc[curr] = 1;
+							else
+								acc[curr] += 1;
+							return acc;
+						, {}
+					}
+
+					console.log("voteCount", voteCount)
+					
+
+
+					
+					
 
 
 				realocateVotes(mappedVotes, firstRoundLosers, firstRoundWinners)
 
-
+				collectVotes(mappedVotes)
 
 				tabulatedObjectToRender = {
 					title: "Tabulated Results", 
-					choice : "chocolate"
+					list : "Chocolate"
 					firstRoundResults: collectVotes(mappedVotes).reverse()
 					secondRoundResults: collectVotes(mappedVotes).reverse()
 				}

@@ -1,7 +1,7 @@
 extends layout
 
 block content
-	h1 Tabulated #{choice} results
+	h1 Tabulated #{list} results
 	hr
 	a(href='/').btn.btn-default Return to Voting
 	br
@@ -9,3 +9,7 @@ block content
 		hr
 		for results in firstRoundResults
 			li #{results.firstChoice}: #{results.votes} votes | #{results.percentage}% of vote #{results.message}
+	ul Second Round Results
+		hr
+		for results in secondRoundResults
+			li #{results.firstChoice}: #{results.votes} votes | #{results.percentage}% of vote #{results.message}		
