@@ -104,7 +104,7 @@ module.exports = {
 				firstRoundWinners = findVotesToRemove(collectVotes(mappedVotes)).remainingChoices
 
 				#returns a list of votes that can be added to previous totals
-				realocateVotes = (AllVotes, firstRoundLosers, firstRoundWinners) ->
+				realallocatedVotes = (AllVotes, firstRoundLosers, firstRoundWinners) ->
 					#Loop through Losers array. Perform action on loser
 					console.log("firstRoundWinners", firstRoundWinners)
 
@@ -143,28 +143,57 @@ module.exports = {
 					rejectNullVotes = _.reject flattenedMatchedVotes, (vote) ->
 						return vote == null
 
-					console.log(flattenedMatchedVotes, "rejects",rejectNullVotes)
+					console.log("rejects",rejectNullVotes)
 				
 
-					voteCount = {
-						votes : rejectNullVotes.reduce (acc, curr) ->
+					voteCount = rejectNullVotes.reduce (acc, curr) ->
 							if (typeof acc[curr] == 'undefined')
 								acc[curr] = 1;
 							else
 								acc[curr] += 1;
 							return acc;
 						, {}
-					}
+
+					console.log("VOTE",voteCount.vote)
+					
 
 					console.log("voteCount", voteCount)
+					#updates votes and percentage
+					addVotes = (firstRoundWinners, voteCount) ->
+						totalVotes = 0
+						for choice in firstRoundWinners 
+							for vote of voteCount
+								# console.log("choice.votes", choice.votes)
+								# console.log("voteCount[vote]", voteCount[vote])
+								# totalVotes += choice.votes + voteCount[vote]
+								# console.log("totalV:", totalVotes)
+								# console.log("vote", vote)
+								# console.log("choice.firstChoice", choice.firstChoice)
+								if choice.firstChoice == vote
+									console.log("choice.votes", choice.votes)
+									console.log("voteCount.vote", voteCount[vote])
+
+									choice.votes = choice.votes + voteCount[vote]
+						console.log("total:",totalVotes)
+
+						for choice in firstRoundWinners 
+							totalVotes += choice.votes
+						for choice in firstRoundWinners 
+							choice.percentage = (choice.votes*100)/totalVotes
+						console.log("firstRoundWinners::",firstRoundWinners)
+						return firstRoundWinners
+						
+
+					# console.log("newTotals::",addVotes(firstRoundWinners, voteCount))
+					# produces an object firstRoundWInners with updated votes total
+					return addVotes(firstRoundWinners, voteCount)
+
+					
 					
 
 
-					
-					
-
-
-				realocateVotes(mappedVotes, firstRoundLosers, firstRoundWinners)
+				reallocated = realallocatedVotes(mappedVotes, firstRoundLosers, firstRoundWinners).sort().reverse()
+				
 
 				collectVotes(mappedVotes)
 
@@ -172,7 +201,7 @@ module.exports = {
 					title: "Tabulated Results", 
 					list : "Chocolate"
 					firstRoundResults: collectVotes(mappedVotes).reverse()
-					secondRoundResults: collectVotes(mappedVotes).reverse()
+					secondRoundResults: reallocated
 				}
 				
 				res.render('tabulate', tabulatedObjectToRender);
