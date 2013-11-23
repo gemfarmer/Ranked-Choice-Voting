@@ -12,4 +12,6 @@ block content
 	ul Second Round Results
 		hr
 		for results in secondRoundResults
-			li #{results.firstChoice}: #{results.votes} votes | #{results.percentage}% of vote #{results.message}		
+			li #{results.firstChoice}: #{results.votes} votes | #{results.percentage}% of vote #{results.message}
+	div#template-results
+	include template.html		
