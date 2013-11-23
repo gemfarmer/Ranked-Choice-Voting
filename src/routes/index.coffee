@@ -62,7 +62,7 @@ module.exports = {
 
 						percentage = (100*grouping.length)/totalVotes
 						if percentage > 50
-							message = "Winner!"
+							message = "winner"
 						else
 							message = ""
 
@@ -98,13 +98,11 @@ module.exports = {
 						return choice.firstChoice
 					return {droppedChoices: droppedChoices, remainingChoices: remainingChoices}
 				console.log("findVotesToRemove",findVotesToRemove(collectVotes(mappedVotes)))
+				
 
-				#Call Functions
-				firstRoundLosers = findVotesToRemove(collectVotes(mappedVotes)).droppedChoices
-				firstRoundWinners = findVotesToRemove(collectVotes(mappedVotes)).remainingChoices
 
 				#returns a list of votes that can be added to previous totals
-				realallocatedVotes = (AllVotes, firstRoundLosers, firstRoundWinners) ->
+				reallocatedVotes = (AllVotes, firstRoundLosers, firstRoundWinners) ->
 					#Loop through Losers array. Perform action on loser
 					console.log("firstRoundWinners", firstRoundWinners)
 
@@ -180,6 +178,8 @@ module.exports = {
 							totalVotes += choice.votes
 						for choice in firstRoundWinners 
 							choice.percentage = (choice.votes*100)/totalVotes
+							if choice.percentage > 50
+								choice.message = "winner"
 						console.log("firstRoundWinners::",firstRoundWinners)
 						return firstRoundWinners
 						
@@ -188,21 +188,75 @@ module.exports = {
 					# produces an object firstRoundWInners with updated votes total
 					return addVotes(firstRoundWinners, voteCount)
 
-					
-					
-
-
-				reallocated = realallocatedVotes(mappedVotes, firstRoundLosers, firstRoundWinners).sort().reverse()
 				
-
+				#collect initial votes
 				collectVotes(mappedVotes)
 
+				# initialize object that will be rendered in the DOM
 				tabulatedObjectToRender = {
 					title: "Tabulated Results", 
 					list : "Chocolate"
 					firstRoundResults: collectVotes(mappedVotes).reverse()
-					secondRoundResults: reallocated
 				}
+
+				next = true
+				roundStatus = 1
+				console.log "next", next
+				console.log("chioce::::::", findVotesToRemove(collectVotes(mappedVotes)))
+				#update next
+				for choice in findVotesToRemove(collectVotes(mappedVotes)).remainingChoices
+
+					if choice.message == "winner"
+						next = false
+				
+
+				# tallies second round
+				secondRound = () ->
+
+					# Define Winners and Losers
+					firstRoundLosers = findVotesToRemove(collectVotes(mappedVotes)).droppedChoices
+					firstRoundWinners = findVotesToRemove(collectVotes(mappedVotes)).remainingChoices
+
+
+					reallocated = reallocatedVotes(mappedVotes, firstRoundLosers, firstRoundWinners).sort().reverse()
+					tabulatedObjectToRender.secondRoundResults = reallocated
+					return reallocated
+
+				followingRounds = () ->
+					# Define Winners and Losers
+					roundLosers = findVotesToRemove(collectVotes(secondRound())).droppedChoices
+					roundWinners = findVotesToRemove(collectVotes(secondRound())).remainingChoices
+
+
+					reallocated = reallocatedVotes(secondRound(), roundLosers, roundWinners).sort().reverse()
+					tabulatedObjectToRender.nextRoundResults = reallocated
+					console.log("reallocated",reallocated)
+					return reallocated
+
+				# check for winner in first round
+				if next
+					roundStatus++
+					secondRound()
+					for choice in findVotesToRemove(collectVotes(secondRound())).remainingChoices
+
+						if choice.message == "winner"
+							next = false
+							if next
+								roundStatus++
+								followingRounds()
+
+
+
+
+
+
+
+
+
+
+				
+
+				
 				
 				res.render('tabulate', tabulatedObjectToRender);
 		
