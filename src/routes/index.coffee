@@ -46,8 +46,11 @@ module.exports = {
 			else
 				mappedVotes = _.map votes, (vote) ->
 					return (vote)
+				console.log("mappedVotes",mappedVotes)
 				# console.log('votes', votes);
-				collectVotes = (votes, additionalVotes) ->
+
+				# collects votes. Takes votes (array of {firstChoice:, secondChoice:, thirdChoice: votes: []})
+				collectVotes = (votes) ->
 					
 					# console.log("votes",votes)
 					totalVotes = votes.length
@@ -81,10 +84,12 @@ module.exports = {
 				# console.log("sorted", sortedMappedGram)
 				# console.log(",MappedGram:::",mappedGram)
 
-				# Find Votes to Remove. Returns Object {droppedChoices, remainingChoices}
+				# Find Votes to Remove. 
+				# Takes object {firstChoice:"", secondChoice:"", thirdChoice:"", votes:[], percentage:Num, message:""}
+				# Returns Object {droppedChoices, remainingChoices}
 				findVotesToRemove = (prevRoundResults) ->
 					fewestVotes = prevRoundResults[0].votes
-					# console.log("fewest votes::",fewestVotes, fewestChoice)
+					console.log("fewest votes::",fewestVotes)
 					fewestVotesArray = _.where(prevRoundResults, {votes: prevRoundResults[0].votes})
 					# console.log("fewestVotesArray", fewestVotesArray)
 					remainingChoices = prevRoundResults.slice(fewestVotesArray.length, prevRoundResults.length)
@@ -97,12 +102,12 @@ module.exports = {
 					droppedChoices = _.map fewestVotesArray, (choice) ->
 						return choice.firstChoice
 					return {droppedChoices: droppedChoices, remainingChoices: remainingChoices}
-				console.log("findVotesToRemove",findVotesToRemove(collectVotes(mappedVotes)))
+				# console.log("findVotesToRemove",findVotesToRemove(collectVotes(mappedVotes)))
 				
 
 
 				#returns a list of votes that can be added to previous totals
-				reallocatedVotes = (AllVotes, firstRoundLosers, firstRoundWinners) ->
+				reallocateVotes = (AllVotes, firstRoundLosers, firstRoundWinners) ->
 					#Loop through Losers array. Perform action on loser
 					console.log("firstRoundWinners", firstRoundWinners)
 
@@ -161,12 +166,7 @@ module.exports = {
 						totalVotes = 0
 						for choice in firstRoundWinners 
 							for vote of voteCount
-								# console.log("choice.votes", choice.votes)
-								# console.log("voteCount[vote]", voteCount[vote])
-								# totalVotes += choice.votes + voteCount[vote]
-								# console.log("totalV:", totalVotes)
-								# console.log("vote", vote)
-								# console.log("choice.firstChoice", choice.firstChoice)
+								
 								if choice.firstChoice == vote
 									console.log("choice.votes", choice.votes)
 									console.log("voteCount.vote", voteCount[vote])
@@ -174,13 +174,20 @@ module.exports = {
 									choice.votes = choice.votes + voteCount[vote]
 						console.log("total:",totalVotes)
 
+						#define Choices
+						currentChoices = _.map firstRoundWinners, (choice) ->
+							return choice.firstChoice
+
 						for choice in firstRoundWinners 
 							totalVotes += choice.votes
 						for choice in firstRoundWinners 
 							choice.percentage = (choice.votes*100)/totalVotes
 							if choice.percentage > 50
 								choice.message = "winner"
-						console.log("firstRoundWinners::",firstRoundWinners)
+							# choice.choices = currentChoices
+						# console.log("firstRoundWinners::",firstRoundWinners)
+						
+						
 						return firstRoundWinners
 						
 
@@ -202,7 +209,7 @@ module.exports = {
 				next = true
 				roundStatus = 1
 				console.log "next", next
-				console.log("chioce::::::", findVotesToRemove(collectVotes(mappedVotes)))
+				# console.log("chioce::::::", findVotesToRemove(collectVotes(mappedVotes)))
 				#update next
 				for choice in findVotesToRemove(collectVotes(mappedVotes)).remainingChoices
 
@@ -218,46 +225,85 @@ module.exports = {
 					firstRoundWinners = findVotesToRemove(collectVotes(mappedVotes)).remainingChoices
 
 
-					reallocated = reallocatedVotes(mappedVotes, firstRoundLosers, firstRoundWinners).sort().reverse()
+					reallocated = reallocateVotes(mappedVotes, firstRoundLosers, firstRoundWinners).sort().reverse()
 					tabulatedObjectToRender.secondRoundResults = reallocated
 					return reallocated
-
+				
 				followingRounds = () ->
-					# Define Winners and Losers
-					roundLosers = findVotesToRemove(collectVotes(secondRound())).droppedChoices
-					roundWinners = findVotesToRemove(collectVotes(secondRound())).remainingChoices
+					# Define Winners and Losers. Votes do not need "collectVotes" after first round
+					roundLosers = findVotesToRemove(secondRound()).droppedChoices
+					console.log("roundLosers",roundLosers)
+					roundWinners = findVotesToRemove(secondRound()).remainingChoices
+					console.log("roundWinners",roundWinners)
 
-
-					reallocated = reallocatedVotes(secondRound(), roundLosers, roundWinners).sort().reverse()
+					reallocated = reallocateVotes(secondRound(), roundLosers, roundWinners).sort().reverse()
 					tabulatedObjectToRender.nextRoundResults = reallocated
-					console.log("reallocated",reallocated)
+					# console.log("reallocated",reallocated)
 					return reallocated
-
+		
 				# check for winner in first round
 				if next
 					roundStatus++
-					secondRound()
-					for choice in findVotesToRemove(collectVotes(secondRound())).remainingChoices
+					second = secondRound()
+					console.log("second", second)
+					following = followingRounds()
+					console.log "following", following
+					# for choice in findVotesToRemove(secondRound()).remainingChoices
 
-						if choice.message == "winner"
-							next = false
-							if next
-								roundStatus++
-								followingRounds()
+						# if choice.message == "winner"
+						# 	next = false
+						# 	if next
+						# 		roundStatus++
+						# 		followingRounds()
 
+			
 
-
-
-
-
-
-
+				
+# mappedVotes [ { firstChoice: 'Milk Chocolate',
+#     secondChoice: 'Snickers',
+#     thirdChoice: 'White Chocolate',
+#     _id: 528cdff1e980ef8f2c000001,
+#     __v: 0,
+#     choices: 
+#      [ 'Milk Chocolate',
+#        'Dark Chocolate',
+#        'White Chocolate',
+#        'Snickers',
+#        'Twix',
+#        'Cadbury',
+#        'Milky Way',
+#        'Hershey\'s' ] },
+#   { firstChoice: 'Milk Chocolate',
+#     secondChoice: 'Twix',
+#     thirdChoice: 'White Chocolate',
+#     _id: 528ce01ae980ef8f2c000002,
+#     __v: 0,
+#     choices: 
+#      [ 'Milk Chocolate',
+#        'Dark Chocolate',
+#        'White Chocolate',
+#        'Snickers',
+#        'Twix',
+#        'Cadbury',
+#        'Milky Way',
+#        'Hershey\'s' ] }
+#    ]
+# second [ { firstChoice: 'Dark Chocolate',
+#     secondChoice: 'Twix',
+#     thirdChoice: 'White Chocolate',
+#     votes: 9,
+#     percentage: 22.5,
+#     message: '' },
+#   { firstChoice: 'Cadbury',
+#     secondChoice: 'Milky Way',
+#     thirdChoice: 'Twix',
+#     votes: 9,
+#     percentage: 22.5,
+#     message: '' }
+#   ]
 
 
 				
-
 				
-				
-				res.render('tabulate', tabulatedObjectToRender);
-		
+				res.render('tabulate', tabulatedObjectToRender);	
 }

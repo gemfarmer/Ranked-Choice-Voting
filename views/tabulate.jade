@@ -13,5 +13,9 @@ block content
 		hr
 		for results in secondRoundResults
 			li #{results.firstChoice}: #{results.votes} votes | #{results.percentage}% of vote #{results.message}
+	ul Next Round Results
+		hr
+		for results in nextRoundResults
+			li #{results.firstChoice}: #{results.votes} votes | #{results.percentage}% of vote #{results.message}
 	div#template-results
 	include template.html		
