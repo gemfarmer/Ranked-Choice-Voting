@@ -44,7 +44,7 @@ module.exports = {
 			if(err)
 				console.log('ERROR')
 			else
-				mappedVotes = _.map votes, (vote) ->
+				allVotes = _.map votes, (vote) ->
 					return (vote)
 
 			
@@ -85,7 +85,7 @@ module.exports = {
 				# Returns Object {droppedChoices, remainingChoices}
 				findVotesToRemove = (prevRoundResults) ->
 					fewestVotes = prevRoundResults[0].votes
-					console.log("fewest votes::",fewestVotes)
+					
 					fewestVotesArray = _.where(prevRoundResults, {votes: prevRoundResults[0].votes})
 					
 					remainingChoices = prevRoundResults.slice(fewestVotesArray.length, prevRoundResults.length)
@@ -101,27 +101,27 @@ module.exports = {
 				
 
 				# Returns a list of votes that can be added to previous totals
-				reallocateVotes = (AllVotes, firstRoundLosers, firstRoundWinners) ->
+				reallocateVotes = (AllVotes, losersList, winnersList) ->
 					#Loop through Losers array. Perform action on loser
-
-					matchedVotes = _.map firstRoundLosers, (loser) ->
+					matchedVotes = _.map losersList, (loser) ->
 						findSecondVotes = _.where AllVotes, {firstChoice: loser}
 
 						return secondVotes = _.map findSecondVotes, (choice) ->
 							
 
-							found = _.where firstRoundWinners, {firstChoice: choice.secondChoice} 
+							found = _.where winnersList, {firstChoice: choice.secondChoice} 
 							
 							if found[0]
 								return choice.secondChoice
 							else
 								thirdVotes = _.map findSecondVotes, (nextChoice) ->
-									foundAgain = _.where firstRoundWinners, {firstChoice: nextChoice.thirdChoice}
+									foundAgain = _.where winnersList, {firstChoice: nextChoice.thirdChoice}
 
 									if foundAgain[0]
 										return nextChoice.thirdChoice
 									else
 										return null
+
 
 					flattenedMatchedVotes = _.flatten(matchedVotes)
 					rejectNullVotes = _.reject flattenedMatchedVotes, (vote) ->
@@ -135,47 +135,51 @@ module.exports = {
 								acc[curr] += 1;
 							return acc;
 						, {}
+					console.log("voteCount", voteCount)
 
 					#updates votes and percentage
-					addVotes = (firstRoundWinners, voteCount) ->
+					addVotes = (winnersList, voteCount) ->
 						totalVotes = 0
-						for choice in firstRoundWinners 
+						for choice in winnersList 
 							for vote of voteCount
 								
 								if choice.firstChoice == vote
 									choice.votes = choice.votes + voteCount[vote]
 
 						#define Choices
-						currentChoices = _.map firstRoundWinners, (choice) ->
+						currentChoices = _.map winnersList, (choice) ->
 							return choice.firstChoice
 
-						for choice in firstRoundWinners 
+						for choice in winnersList 
 							totalVotes += choice.votes
-						for choice in firstRoundWinners 
+						for choice in winnersList 
 							choice.percentage = (choice.votes*100)/totalVotes
 							if choice.percentage > 50
 								choice.message = "winner"
-						return firstRoundWinners
+						console.log("winnersList", winnersList)
+
+						return winnersList
+
 						
-					# produces an object firstRoundWInners with updated votes total
-					return addVotes(firstRoundWinners, voteCount)
+					# produces an object winnersList with updated votes total
+					return addVotes(winnersList, voteCount)
 
 				
-				#collect initial votes
-				collectVotes(mappedVotes)
+				# Collect initial votes
+				collectVotes(allVotes)
 
 				# initialize object that will be rendered in the DOM
 				tabulatedObjectToRender = {
 					title: "Tabulated Results", 
 					list : "Chocolate"
-					firstRoundResults: collectVotes(mappedVotes).reverse()
+					firstRoundResults: collectVotes(allVotes).reverse()
 				}
 
 				next = true
 				roundStatus = 1
 
 				#update next
-				for choice in findVotesToRemove(collectVotes(mappedVotes)).remainingChoices
+				for choice in findVotesToRemove(collectVotes(allVotes)).remainingChoices
 
 					if choice.message == "winner"
 						next = false
@@ -185,22 +189,25 @@ module.exports = {
 				secondRound = () ->
 
 					# Define Winners and Losers
-					firstRoundLosers = findVotesToRemove(collectVotes(mappedVotes)).droppedChoices
-					firstRoundWinners = findVotesToRemove(collectVotes(mappedVotes)).remainingChoices
+					firstRoundLosers = findVotesToRemove(collectVotes(allVotes)).droppedChoices
+					firstRoundWinners = findVotesToRemove(collectVotes(allVotes)).remainingChoices
 
 
-					reallocated = reallocateVotes(mappedVotes, firstRoundLosers, firstRoundWinners).sort().reverse()
+					reallocated = reallocateVotes(allVotes, firstRoundLosers, firstRoundWinners).sort().reverse()
 					tabulatedObjectToRender.secondRoundResults = reallocated
 					return reallocated
 				
 				followingRounds = () ->
 					# Define Winners and Losers. Votes do not need "collectVotes" after first round
+					roundResults = findVotesToRemove(secondRound().reverse())
+					console.log("roundResults",roundResults)
 					roundLosers = findVotesToRemove(secondRound().reverse()).droppedChoices
 					console.log("roundLosers",roundLosers)
 					roundWinners = findVotesToRemove(secondRound().reverse()).remainingChoices
 					console.log("roundWinners",roundWinners)
 
-					reallocated = reallocateVotes(secondRound(), roundLosers, roundWinners).sort().reverse()
+					reallocated = reallocateVotes(allVotes, roundLosers, roundWinners).sort().reverse()
+					console.log("reallocated",reallocated)
 					tabulatedObjectToRender.nextRoundResults = reallocated
 					# console.log("reallocated",reallocated)
 					return reallocated
@@ -208,10 +215,13 @@ module.exports = {
 				# check for winner in first round
 				if next
 					roundStatus++
-					second = secondRound()
-					console.log("second", second)
-					following = followingRounds()
-					console.log "following", following
+					secondRound()
+					# console.log("second", second)
+					followingRounds()
+					secondRound()
+					# console.log("tabulated", tabulatedObjectToRender)
+
+					# console.log "following", following
 					# for choice in findVotesToRemove(secondRound()).remainingChoices
 
 						# if choice.message == "winner"
