@@ -195,9 +195,9 @@ module.exports = {
 				
 				followingRounds = () ->
 					# Define Winners and Losers. Votes do not need "collectVotes" after first round
-					roundLosers = findVotesToRemove(secondRound()).droppedChoices
+					roundLosers = findVotesToRemove(secondRound().reverse()).droppedChoices
 					console.log("roundLosers",roundLosers)
-					roundWinners = findVotesToRemove(secondRound()).remainingChoices
+					roundWinners = findVotesToRemove(secondRound().reverse()).remainingChoices
 					console.log("roundWinners",roundWinners)
 
 					reallocated = reallocateVotes(secondRound(), roundLosers, roundWinners).sort().reverse()
