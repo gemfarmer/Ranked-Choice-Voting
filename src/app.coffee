@@ -40,13 +40,16 @@ mongoose.connect(mongoURI)
 
 
 app.get('/', routes.index);
+# require(routes(app, io);
 app.post '/submitdata', (req,res) ->
 	submitedInfo = req.body
 	console.log("submitedInfo", submitedInfo)
 	
 	return
 app.get '/chocolate', routes.chocolate 
+
 app.get '/tabulate', routes.tabulate
+
 
 
 server.listen(app.get('port'), () ->

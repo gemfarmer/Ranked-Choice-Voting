@@ -1,3 +1,14 @@
 <script id="search-results-template" type="text/x-handlebars-template">
-	<div></div>
+	Handlebars.registerHelper 'list', (items, options) ->
+		out = "<ul>";
+
+		for(var i=0, l=items.length; i<l; i++)
+			out = out + "<li>" + options.fn(items[i]) + "</li>";
+		return out + "</ul>";
+
+
+	<ul>next Round Results
+		<hr>
+		{{#list nextRoundResults}}{{firstChoice}}: {{votes}} | {{percentage}}% of vote {{message}}{{/list}}
+	</ul>
 </script>

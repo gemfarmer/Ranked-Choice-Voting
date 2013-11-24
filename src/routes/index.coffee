@@ -194,41 +194,46 @@ module.exports = {
 
 
 					reallocated = reallocateVotes(allVotes, firstRoundLosers, firstRoundWinners).sort().reverse()
-					tabulatedObjectToRender.secondRoundResults = reallocated
 					return reallocated
 				
 				followingRounds = () ->
 					# Define Winners and Losers. Votes do not need "collectVotes" after first round
 					roundResults = findVotesToRemove(secondRound().reverse())
-					console.log("roundResults",roundResults)
+					# console.log("roundResults",roundResults)
 					roundLosers = findVotesToRemove(secondRound().reverse()).droppedChoices
-					console.log("roundLosers",roundLosers)
+					# console.log("roundLosers",roundLosers)
 					roundWinners = findVotesToRemove(secondRound().reverse()).remainingChoices
-					console.log("roundWinners",roundWinners)
+					# console.log("roundWinners",roundWinners)
 
-					reallocated = reallocateVotes(allVotes, roundLosers, roundWinners).sort().reverse()
-					console.log("reallocated",reallocated)
-					tabulatedObjectToRender.nextRoundResults = reallocated
-					# console.log("reallocated",reallocated)
-					return reallocated
+					reallocated = _.sortBy reallocateVotes(allVotes, roundLosers, roundWinners), (obj) ->
+						return obj.votes
+					return reallocated.reverse()
 		
 				# check for winner in first round
 				if next
 					roundStatus++
-					secondRound()
-					# console.log("second", second)
-					followingRounds()
-					secondRound()
+					tabulatedObjectToRender.secondRoundResults = secondRound()
+					for choice in secondRound()
+						console.log(choice)
+						if choice.message == "winner"
+							console.log("no winner")
+							next = false
+							if next
+								console.log("no_winner")
+						else
+							roundStatus++
+							# app.get '/nextRound', (req,res) ->
+							# 	res.send({next: true})
+							tabulatedObjectToRender.nextRoundResults = followingRounds()
+					# secondRound()
 					# console.log("tabulated", tabulatedObjectToRender)
 
 					# console.log "following", following
-					# for choice in findVotesToRemove(secondRound()).remainingChoices
+					
 
-						# if choice.message == "winner"
-						# 	next = false
-						# 	if next
-						# 		roundStatus++
+						
 						# 		followingRounds()
+				console.log 'tabulate', tabulatedObjectToRender
 				
 				res.render('tabulate', tabulatedObjectToRender);	
 }
