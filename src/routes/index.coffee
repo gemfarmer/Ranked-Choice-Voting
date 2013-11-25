@@ -17,6 +17,11 @@ Chocolate = mongoose.model 'Chocolate', {
 	choices: Array or String
 }
 
+#import and set up socket server
+server = require("./../app.js").server
+socketio = require 'socket.io'
+io = socketio.listen(server);
+
 module.exports = {
 	index: (req, res) ->
 		# io.sockets.on 'connection', (socket) ->
@@ -84,12 +89,13 @@ module.exports = {
 				# Takes object {firstChoice:"", secondChoice:"", thirdChoice:"", votes:[], percentage:Num, message:""}
 				# Returns Object {droppedChoices, remainingChoices}
 				findVotesToRemove = (prevRoundResults) ->
+					console.log("prevRoundResults", prevRoundResults)
 					fewestVotes = prevRoundResults[0].votes
-					
+					console.log("fewestVotes",fewestVotes)
 					fewestVotesArray = _.where(prevRoundResults, {votes: prevRoundResults[0].votes})
-					
+					console.log("fewestVotesArray",fewestVotesArray)
 					remainingChoices = prevRoundResults.slice(fewestVotesArray.length, prevRoundResults.length)
-					
+					console.log("remainingChoices", remainingChoices)
 
 					if (remainingChoices[0].votes + fewestVotes) < remainingChoices[1].votes
 						console.log("remove next")
@@ -193,8 +199,9 @@ module.exports = {
 					firstRoundWinners = findVotesToRemove(collectVotes(allVotes)).remainingChoices
 
 
-					reallocated = reallocateVotes(allVotes, firstRoundLosers, firstRoundWinners).sort().reverse()
-					return reallocated
+					reallocated = _.sortBy reallocateVotes(allVotes, firstRoundLosers, firstRoundWinners), (obj) ->
+						return obj.votes
+					return reallocated.reverse()
 				
 				followingRounds = () ->
 					# Define Winners and Losers. Votes do not need "collectVotes" after first round
@@ -211,25 +218,29 @@ module.exports = {
 		
 				# check for winner in first round
 				if next
-					roundStatus++
-					tabulatedObjectToRender.secondRoundResults = secondRound()
-					for choice in secondRound()
-						console.log(choice)
-						if choice.message == "winner"
-							console.log("no winner")
-							next = false
-							if next
-								console.log("no_winner")
-						else
-							roundStatus++
-							# app.get '/nextRound', (req,res) ->
-							# 	res.send({next: true})
-							tabulatedObjectToRender.nextRoundResults = followingRounds()
-					# secondRound()
-					# console.log("tabulated", tabulatedObjectToRender)
+					io.sockets.on 'connection', (socket) ->
 
-					# console.log "following", following
-					
+						console.log("SOCKET CONNECTED")
+						roundStatus++
+						tabulatedObjectToRender.secondRoundResults = secondRound()
+						for choice in secondRound()
+							console.log(choice)
+							if choice.message == "winner"
+								console.log("no winner")
+								next = false
+								if next
+									console.log("no_winner")
+							else
+								roundStatus++
+								socket.emit('nextRound',{next: true})
+								# app.get '/nextRound', (req,res) ->
+								# 	res.send({next: true})
+								tabulatedObjectToRender.nextRoundResults = followingRounds()
+						# secondRound()
+						# console.log("tabulated", tabulatedObjectToRender)
+
+						# console.log "following", following
+						
 
 						
 						# 		followingRounds()

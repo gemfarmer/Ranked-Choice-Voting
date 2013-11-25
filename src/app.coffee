@@ -31,7 +31,10 @@ if ('development' == app.get('env'))
 server = http.createServer(app);
 
 #Start the web socket server
-io = socketio.listen(server);
+module.exports = {
+        server: server
+}
+# io = socketio.listen(server);
 
 # Connect Mongo DB
 mongoURI = process.env.MONGOHQ_URL or 'mongodb://localhost/rankedvoting'
